@@ -1,7 +1,7 @@
 name = "PreallocatedArrays"
 uuid = "f9710d63-ac16-4fea-bcef-3ac1fb623b0a"
 authors = ["Yuki Nagai <cometscome@gmail.com>"]
-version = "0.0.1"
+version = "0.1.0"
 
 [compat]
 julia = "1.10"

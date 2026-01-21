@@ -63,7 +63,7 @@ mutable struct PreallocatedArray{TG,TL,haslabel}
         _labels .= labels
         _flagusing = ones(Bool, num)
         _indices = collect(1:num)
-        return PreallocatedArray(a, _flagusing, _indices, Nmax, reusemode)
+        return PreallocatedArray(a, _labels, _flagusing, _indices, Nmax, reusemode)
     end
 
 end
@@ -91,11 +91,14 @@ function Base.getindex(t::PreallocatedArray{TG}, i::Int) where {TG}
     if i > length(t._data)
         @warn "The length of the PreallocatedArray is shorter than the index $i. New temporal fields are created."
         ndiff = i - length(t._data)
-        @assert i <= t.Nmax "The number of the tempralfields $i is larger than the maximum number $(Nmax). Change Nmax."
+        @assert i <= t.Nmax "The number of the tempralfields $i is larger than the maximum number $(t.Nmax). Change Nmax."
         for n = 1:ndiff
             push!(t._data, similar(t._data[1]))
             push!(t._flagusing, 0)
             push!(t._indices, 0)
+            if t._haslabel
+                push!(t._labels, nothing)
+            end
         end
     end
     if t._indices[i] == 0
@@ -190,7 +193,9 @@ function load_block_withlabel(t::PreallocatedArray{TG,TL,true}, label::TL) where
     #not_undef = [i for i in eachindex(t._labels) if isassigned(t._labels, i)]
     index = findfirst(x -> x == label, t._labels)
     @assert index !== nothing "this label $(label) was not set! Something is wrong"
-    ti = t._data[index]
+    data_index = t._indices[index]
+    @assert data_index != 0 "this label $(label) is unused. Something is wrong"
+    ti = t._data[data_index]
     return ti, index
 end
 export load_block_withlabel
@@ -217,6 +222,9 @@ function unused!(t::PreallocatedArray{TG}, i) where {TG}
         index = t._indices[i]
         t._flagusing[index] = false
         t._indices[i] = 0
+        if t._haslabel
+            t._labels[i] = nothing
+        end
     end
 end
 

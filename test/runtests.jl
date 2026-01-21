@@ -146,4 +146,61 @@ end
     println("---------------------")
     println("test4")
     @test test4()
+
+    println("---------------------")
+    println("---------------------")
+    println("bug: label expansion should not throw")
+    @test begin
+        a = rand(3, 3)
+        blockvec = PreallocatedArray(a; num=1, haslabel=true)
+        _, _ = new_block_withlabel(blockvec, "cat")
+        # Second allocation expands storage but labels are not extended.
+        _, _ = new_block_withlabel(blockvec, "dog")
+        true
+    end
+
+    println("---------------------")
+    println("---------------------")
+    println("bug: labels should be preserved in vector constructor")
+    @test begin
+        data = [rand(4) for _ in 1:3]
+        labels = ["a", "b", "c"]
+        blockvec = PreallocatedArray(data, labels)
+        blockvec._labels == labels
+    end
+
+    println("---------------------")
+    println("---------------------")
+    println("bug: unused! should clear label")
+    @test begin
+        a = rand(3, 3)
+        blockvec = PreallocatedArray(a; num=1, haslabel=true)
+        _, idx = new_block_withlabel(blockvec, "cat")
+        unused!(blockvec, idx)
+        blockvec._labels[idx] === nothing
+    end
+
+    println("---------------------")
+    println("---------------------")
+    println("bug: load_block_withlabel after unused should fail")
+    @test_throws AssertionError begin
+        a = rand(3, 3)
+        blockvec = PreallocatedArray(a; num=1, haslabel=true)
+        _, idx = new_block_withlabel(blockvec, "cat")
+        unused!(blockvec, idx)
+        load_block_withlabel(blockvec, "cat")
+    end
+
+    println("---------------------")
+    println("---------------------")
+    println("bug: load_block_withlabel should return assigned block")
+    @test begin
+        a = rand(2, 2)
+        blockvec = PreallocatedArray(a; num=1, haslabel=true)
+        # Force a mismatch between logical index and physical index.
+        _ = blockvec[5]
+        assigned_block, _ = new_block_withlabel(blockvec, "cat")
+        loaded_block, _ = load_block_withlabel(blockvec, "cat")
+        assigned_block === loaded_block
+    end
 end
