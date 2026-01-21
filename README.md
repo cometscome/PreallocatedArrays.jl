@@ -11,7 +11,7 @@
 ## Installation
 
 ```julia
-] add https://github.com/cometscome/PreallocatedArrays.jl
+] add PreallocatedArrays
 ```
 
 ## Main Features
@@ -87,6 +87,17 @@ blockvec_labeled = PreallocatedArray(data, labels)
 # Display usage information
 display(blockvec_labeled)
 ```
+
+## Custum type
+You can use a custum type. 
+For example, if you want to treat the gaugefields in Gaugefields.jl, 
+```julia
+using Gaugefields
+U =  Initialize_Gaugefields(3,0,4,4,4,4)
+a = PreallocatedArray(U,num=10)
+U1,it = get_block(a)
+```
+To use a custom type, ```Base.similar``` should be defined for the custom type. 
 
 ## Important Functions
 
