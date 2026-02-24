@@ -165,7 +165,8 @@ function get_block(t::PreallocatedArray{TG}) where {TG}
     n = length(t._data)
     i = findfirst(x -> x == 0, t._indices)
     if i == nothing
-        @warn "All $n blocks are used. New one is created. Usually, this means that something is wrong."
+        @warn "All $n blocks are used in this PreallocatedArray. New one is created. "
+        #@warn "All $n blocks are used. New one is created. Usually, this means that something is wrong."
         i = n + 1
     end
 
